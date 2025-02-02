@@ -1,0 +1,48 @@
+# Miscellaneous files
+.DS_Store
+
+# Backup files
+*.bak
+
+# Cache files
+*.cache
+.cache/
+
+# Temporary files
+*.temp
+*.tmp
+
+# Log files
+*.log
+*.log*
+logs/
+
+# SSL certificates
+*.pem
+
+# Environment files
+.env
+.env.*
+
+# TypeScript-specific files
+*.tsbuildinfo
+
+# Editor files
+.idea/
+.vscode/
+[._]*.s[a-v][a-z]
+!*.svg
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Build files
+build/
+dist/
+
+# Tarballs
+*.tgz
+
+# Node.js-specific files
+node_modules/

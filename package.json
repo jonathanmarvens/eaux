@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "author": "Jonathan Barronville <jonathanmarvens@proton.me>",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/chai": "5.0.1",
+    "@types/mocha": "10.0.10",
+    "@types/node": "20.17.16",
+    "@types/sinon": "17.0.3",
+    "chai": "5.1.2",
+    "clean-pkg-json": "1.2.0",
+    "cross-env": "7.0.3",
+    "mocha": "11.1.0",
+    "npm-run-all": "4.1.5",
+    "pkgroll": "2.6.1",
+    "sinon": "19.0.2",
+    "tsx": "4.19.2",
+    "typescript": "5.7.3"
+  },
+  "engines": {
+    "node": ">=20.x"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "abstraction",
+    "combinator",
+    "data-handling",
+    "error-handling",
+    "explicit-state-management",
+    "functional-programming",
+    "lightweight",
+    "maybe",
+    "monad",
+    "optional-values",
+    "result",
+    "type-safe",
+    "typescript",
+    "value-safety"
+  ],
+  "license": "Apache-2.0",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "name": "eaux",
+  "optionalDependencies": {},
+  "packageManager": "pnpm@8.15.9",
+  "repository": "jonathanmarvens/eaux",
+  "scripts": {
+    "build": "pkgroll --clean-dist --dist=./dist --minify --src=./src --target=node20",
+    "build:dev": "run-s build:watch",
+    "build:watch": "pkgroll --clean-dist --dist=./dist --sourcemap=inline --src=./src --target=node20 --watch",
+    "clean-pkg-json": "clean-pkg-json",
+    "dev": "run-p build:dev test:dev",
+    "prepack": "run-s build clean-pkg-json",
+    "test": "cross-env NODE_ENV=test mocha --diff --extension test.cts,test.mts,test.ts --fail-zero --full-trace --inline-diffs --parallel --recursive --reporter spec --require tsx --timeout 5000 --ui tdd src",
+    "test:dev": "run-s test:watch",
+    "test:watch": "cross-env NODE_ENV=test mocha --color --diff --extension test.cts,test.mts,test.ts --fail-zero --full-trace --inline-diffs --parallel --recursive --reporter spec --require tsx --timeout 5000 --ui tdd --watch src",
+    "type-check": "tsc --noEmit --project ./tsconfig.json"
+  },
+  "type": "module",
+  "types": "./dist/index.d.mts",
+  "version": "1.0.0"
+}
