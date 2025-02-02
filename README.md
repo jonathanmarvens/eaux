@@ -1,6 +1,6 @@
 # `eaux`
 
-A lightweight and functional–style library that provides robust abstractions for handling optional values and handling operations that can either succeed or fail. By making states explicit, it encourages precise and deliberate management of application logic.
+A lightweight and functional-style library that provides robust abstractions for handling optional values and handling operations that can either succeed or fail. By making states explicit, it encourages precise and deliberate management of application logic.
 
 ---
 
@@ -244,7 +244,7 @@ On a `Result` instance, the following methods are available:
 
 ## Usage
 
-The following examples illustrate some real–world scenarios where **`eaux`** can be useful.
+The following examples illustrate some real-world scenarios where **`eaux`** can be useful.
 
 ### Example 1: Handling Optional User Input
 
@@ -283,7 +283,7 @@ import { failure, success } from 'eaux'
 
 function parseNumber(input: string): Result<number, string> {
   const parsedValue = Number(input)
-  // Check for non–numeric values.
+  // Check for non-numeric values.
   if (isNaN(parsedValue)) {
     return failure('Invalid number format, expected a numeric string.')
   }
