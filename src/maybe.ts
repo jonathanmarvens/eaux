@@ -16,6 +16,7 @@
  *******************************************************************************
  */
 
+import assert from 'node:assert/strict'
 import ExpectationError from './error/expectation'
 import { failure } from './result'
 import ImproperUnwrapError from './error/improper-unwrap'
@@ -38,7 +39,7 @@ abstract class Maybe<TValue> {
 
   protected abstract _filter(predicate: (value: TValue) => boolean): Maybe<TValue>
 
-  protected abstract _getSuccessOr<TError>(error: TError): Result<TValue, TError>
+  protected abstract _getSuccessOr<TError extends NonNullable<unknown>>(error: TError): Result<TValue, TError>
 
   protected abstract _inspect(f: (value: TValue) => void): Maybe<TValue>
 
@@ -63,6 +64,7 @@ abstract class Maybe<TValue> {
    * @param other The {@link Maybe} to return if this is a `Something` {@link Maybe}.
    */
   public and<TOtherValue>(other: Maybe<TOtherValue>) {
+    assert(isMaybe(other))
     return this._and(other)
   }
 
@@ -73,6 +75,7 @@ abstract class Maybe<TValue> {
    * @param f The function to apply to the contained value.
    */
   public andThen<TOtherValue>(f: (value: TValue) => Maybe<TOtherValue>) {
+    assert(typeof f === 'function')
     return this._andThen(f)
   }
 
@@ -83,6 +86,7 @@ abstract class Maybe<TValue> {
    * @param message The message to include in the {@link ExpectationError}.
    */
   public expect(message: string) {
+    assert(typeof message === 'string')
     return this._expect(message)
   }
 
@@ -93,6 +97,7 @@ abstract class Maybe<TValue> {
    * @param predicate The predicate to apply to the contained value.
    */
   public filter(predicate: (value: TValue) => boolean) {
+    assert(typeof predicate === 'function')
     return this._filter(predicate)
   }
 
@@ -102,7 +107,7 @@ abstract class Maybe<TValue> {
    *
    * @param error The error to include in the `Failure` {@link Result}.
    */
-  public getSuccessOr<TError>(error: TError) {
+  public getSuccessOr<TError extends NonNullable<unknown>>(error: TError) {
     return this._getSuccessOr(error)
   }
 
@@ -113,6 +118,7 @@ abstract class Maybe<TValue> {
    * @param f The function to apply to the contained value.
    */
   public inspect(f: (value: TValue) => void) {
+    assert(typeof f === 'function')
     return this._inspect(f)
   }
 
@@ -131,6 +137,7 @@ abstract class Maybe<TValue> {
    * @param predicate The predicate to apply to the contained value.
    */
   public isNothingOr(predicate: (value: TValue) => boolean) {
+    assert(typeof predicate === 'function')
     return this._isNothingOr(predicate)
   }
 
@@ -149,6 +156,7 @@ abstract class Maybe<TValue> {
    * @param predicate The predicate to apply to the contained value.
    */
   public isSomethingAnd(predicate: (value: TValue) => boolean) {
+    assert(typeof predicate === 'function')
     return this._isSomethingAnd(predicate)
   }
 
@@ -159,6 +167,7 @@ abstract class Maybe<TValue> {
    * @param f The function to apply to the contained value.
    */
   public map<TNewValue>(f: (value: TValue) => TNewValue) {
+    assert(typeof f === 'function')
     return this._map(f)
   }
 
@@ -169,6 +178,7 @@ abstract class Maybe<TValue> {
    * @param other The {@link Maybe} to return if this is a `Nothing` {@link Maybe}.
    */
   public or(other: Maybe<TValue>) {
+    assert(isMaybe(other))
     return this._or(other)
   }
 
@@ -227,7 +237,7 @@ class Nothing extends Maybe<never> {
     return this
   }
 
-  protected _getSuccessOr<TError>(error: TError) {
+  protected _getSuccessOr<TError extends NonNullable<unknown>>(error: TError) {
     return failure<never, TError>(error)
   }
 
@@ -281,7 +291,9 @@ class Something<TValue> extends Maybe<TValue> {
   }
 
   protected _andThen<TOtherValue>(f: (value: TValue) => Maybe<TOtherValue>) {
-    return f(this.#value)
+    const value = f(this.#value)
+    assert(isMaybe(value))
+    return value
   }
 
   protected _expect() {
@@ -289,7 +301,9 @@ class Something<TValue> extends Maybe<TValue> {
   }
 
   protected _filter(predicate: (value: TValue) => boolean) {
-    return predicate(this.#value) ?
+    const isSatified = predicate(this.#value)
+    assert(typeof isSatified === 'boolean')
+    return isSatified ?
       this :
       Nothing.make()
   }
@@ -308,7 +322,9 @@ class Something<TValue> extends Maybe<TValue> {
   }
 
   protected _isNothingOr(predicate: (value: TValue) => boolean) {
-    return predicate(this.#value)
+    const isSatified = predicate(this.#value)
+    assert(typeof isSatified === 'boolean')
+    return isSatified
   }
 
   protected _isSomething() {
@@ -316,7 +332,9 @@ class Something<TValue> extends Maybe<TValue> {
   }
 
   protected _isSomethingAnd(predicate: (value: TValue) => boolean) {
-    return predicate(this.#value)
+    const isSatified = predicate(this.#value)
+    assert(typeof isSatified === 'boolean')
+    return isSatified
   }
 
   protected _map<TNewValue>(f: (value: TValue) => TNewValue) {
