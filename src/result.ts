@@ -16,6 +16,7 @@
  *******************************************************************************
  */
 
+import assert from 'node:assert/strict'
 import ExpectationError from './error/expectation'
 import ImproperUnwrapError from './error/improper-unwrap'
 import type Maybe from './maybe'
@@ -27,7 +28,7 @@ import util from 'node:util'
 /**
  * A robust abstraction for handling operations that can either succeed or fail.
  */
-abstract class Result<TValue, TError> {
+abstract class Result<TValue, TError extends NonNullable<unknown>> {
   protected constructor() { }
 
   protected abstract _and<TOtherValue>(other: Result<TOtherValue, TError>): Result<TOtherValue, TError>
@@ -56,9 +57,9 @@ abstract class Result<TValue, TError> {
 
   protected abstract _map<TNewValue>(f: (value: TValue) => TNewValue): Result<TNewValue, TError>
 
-  protected abstract _mapFailure<TNewError>(f: (error: TError) => TNewError): Result<TValue, TNewError>
+  protected abstract _mapFailure<TNewError extends NonNullable<unknown>>(f: (error: TError) => TNewError): Result<TValue, TNewError>
 
-  protected abstract _or<TOtherError>(other: Result<TValue, TOtherError>): Result<TValue, TOtherError>
+  protected abstract _or<TOtherError extends NonNullable<unknown>>(other: Result<TValue, TOtherError>): Result<TValue, TOtherError>
 
   protected abstract _unwrap(): TValue
 
@@ -71,6 +72,7 @@ abstract class Result<TValue, TError> {
    * @param other The {@link Result} to return if this is a `Success` {@link Result}.
    */
   public and<TOtherValue>(other: Result<TOtherValue, TError>) {
+    assert(isResult(other))
     return this._and(other)
   }
 
@@ -81,6 +83,7 @@ abstract class Result<TValue, TError> {
    * @param f The function to apply to the contained value.
    */
   public andThen<TOtherValue>(f: (value: TValue) => Result<TOtherValue, TError>) {
+    assert(typeof f === 'function')
     return this._andThen(f)
   }
 
@@ -91,6 +94,7 @@ abstract class Result<TValue, TError> {
    * @param message The message to include in the {@link ExpectationError}.
    */
   public expect(message: string) {
+    assert(typeof message === 'string')
     return this._expect(message)
   }
 
@@ -101,6 +105,7 @@ abstract class Result<TValue, TError> {
    * @param message The message to include in the {@link ExpectationError}.
    */
   public expectFailure(message: string) {
+    assert(typeof message === 'string')
     return this._expectFailure(message)
   }
 
@@ -127,6 +132,7 @@ abstract class Result<TValue, TError> {
    * @param f The function to apply to the contained value.
    */
   public inspect(f: (value: TValue) => void) {
+    assert(typeof f === 'function')
     return this._inspect(f)
   }
 
@@ -137,6 +143,7 @@ abstract class Result<TValue, TError> {
    * @param f The function to apply to the contained error.
    */
   public inspectFailure(f: (error: TError) => void) {
+    assert(typeof f === 'function')
     return this._inspectFailure(f)
   }
 
@@ -155,6 +162,7 @@ abstract class Result<TValue, TError> {
    * @param predicate The predicate to apply to the contained error.
    */
   public isFailureAnd(predicate: (error: TError) => boolean) {
+    assert(typeof predicate === 'function')
     return this._isFailureAnd(predicate)
   }
 
@@ -173,6 +181,7 @@ abstract class Result<TValue, TError> {
    * @param predicate The predicate to apply to the contained value.
    */
   public isSuccessAnd(predicate: (value: TValue) => boolean) {
+    assert(typeof predicate === 'function')
     return this._isSuccessAnd(predicate)
   }
 
@@ -183,6 +192,7 @@ abstract class Result<TValue, TError> {
    * @param f The function to apply to the contained value.
    */
   public map<TNewValue>(f: (value: TValue) => TNewValue) {
+    assert(typeof f === 'function')
     return this._map(f)
   }
 
@@ -192,7 +202,8 @@ abstract class Result<TValue, TError> {
    *
    * @param f The function to apply to the contained error.
    */
-  public mapFailure<TNewError>(f: (error: TError) => TNewError) {
+  public mapFailure<TNewError extends NonNullable<unknown>>(f: (error: TError) => TNewError) {
+    assert(typeof f === 'function')
     return this._mapFailure(f)
   }
 
@@ -202,7 +213,8 @@ abstract class Result<TValue, TError> {
    *
    * @param other The {@link Result} to return if this is a `Failure` {@link Result}.
    */
-  public or<TOtherError>(other: Result<TValue, TOtherError>) {
+  public or<TOtherError extends NonNullable<unknown>>(other: Result<TValue, TOtherError>) {
+    assert(isResult(other))
     return this._or(other)
   }
 
@@ -237,8 +249,8 @@ abstract class Result<TValue, TError> {
   }
 }
 
-class Failure<TError> extends Result<never, TError> {
-  public static make<TError>(error: TError) {
+class Failure<TError extends NonNullable<unknown>> extends Result<never, TError> {
+  public static make<TError extends NonNullable<unknown>>(error: TError) {
     return new this(error)
   }
 
@@ -287,7 +299,9 @@ class Failure<TError> extends Result<never, TError> {
   }
 
   protected _isFailureAnd(predicate: (error: TError) => boolean) {
-    return predicate(this.#error)
+    const isSatified = predicate(this.#error)
+    assert(typeof isSatified === 'boolean')
+    return isSatified
   }
 
   protected _isSuccess() {
@@ -302,12 +316,14 @@ class Failure<TError> extends Result<never, TError> {
     return this
   }
 
-  protected _mapFailure<TNewError>(f: (error: TError) => TNewError) {
+  protected _mapFailure<TNewError extends NonNullable<unknown>>(f: (error: TError) => TNewError) {
     const error = f(this.#error)
+    assert(typeof error !== 'undefined')
+    assert(error !== null)
     return Failure.make(error)
   }
 
-  protected _or<TOtherError>(other: Result<never, TOtherError>) {
+  protected _or<TOtherError extends NonNullable<unknown>>(other: Result<never, TOtherError>) {
     return other
   }
 
@@ -337,7 +353,9 @@ class Success<TValue> extends Result<TValue, never> {
   }
 
   protected _andThen<TOtherValue>(f: (value: TValue) => Result<TOtherValue, never>) {
-    return f(this.#value)
+    const value = f(this.#value)
+    assert(isResult(value))
+    return value
   }
 
   protected _expect() {
@@ -378,7 +396,9 @@ class Success<TValue> extends Result<TValue, never> {
   }
 
   protected _isSuccessAnd(predicate: (value: TValue) => boolean) {
-    return predicate(this.#value)
+    const isSatified = predicate(this.#value)
+    assert(typeof isSatified === 'boolean')
+    return isSatified
   }
 
   protected _map<TNewValue>(f: (value: TValue) => TNewValue) {
@@ -408,7 +428,7 @@ class Success<TValue> extends Result<TValue, never> {
  *
  * @param value The value to check.
  */
-function isResult(value: unknown): value is Result<unknown, unknown> {
+function isResult(value: unknown): value is Result<unknown, NonNullable<unknown>> {
   return (value instanceof Result)
 }
 
@@ -417,7 +437,9 @@ function isResult(value: unknown): value is Result<unknown, unknown> {
  *
  * @param error The error to contain in the new `Failure` {@link Result}.
  */
-function failure<TValue = any, TError = any>(error: TError): Result<TValue, TError> {
+function failure<TValue = any, TError extends NonNullable<unknown> = any>(error: TError): Result<TValue, TError> {
+  assert(typeof error !== 'undefined')
+  assert(error !== null)
   return Failure.make(error)
 }
 
@@ -426,7 +448,7 @@ function failure<TValue = any, TError = any>(error: TError): Result<TValue, TErr
  *
  * @param value The value to contain in the new `Success` {@link Result}.
  */
-function success<TValue = any, TError = any>(value: TValue): Result<TValue, TError> {
+function success<TValue = any, TError extends NonNullable<unknown> = any>(value: TValue): Result<TValue, TError> {
   return Success.make(value)
 }
 
