@@ -182,11 +182,25 @@ abstract class Maybe<TValue> {
     return this._or(other)
   }
 
-  public toString(): string {
+  public toString() {
     if (this.isSomething()) {
-      return `Maybe{ Something{ value: ${this.unwrap()} } }`
+      let string = 'Maybe{\n'
+      string += '  Something{\n'
+      const valueString = `${this.unwrap()}`
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n')
+        .trimStart()
+      string += `    value: ${valueString},\n`
+      string += '  }\n'
+      string += '}'
+      return string
     } else if (this.isNothing()) {
-      return 'Maybe{ Nothing }'
+      return `
+Maybe{
+  Nothing{}
+}
+`.trim()
     } else {
       throw new UnreachableCodeError('Reached an unreachable code path')
     }
