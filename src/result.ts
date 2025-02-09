@@ -218,11 +218,31 @@ abstract class Result<TValue, TError extends NonNullable<unknown>> {
     return this._or(other)
   }
 
-  public toString(): string {
+  public toString() {
     if (this.isSuccess()) {
-      return `Success{ value: ${this.unwrap()} }`
+      let string = 'Result{\n'
+      string += '  Success{\n'
+      const valueString = `${this.unwrap()}`
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n')
+        .trimStart()
+      string += `    value: ${valueString},\n`
+      string += '  }\n'
+      string += '}'
+      return string
     } else if (this.isFailure()) {
-      return `Failure{ error: ${this.unwrapFailure()} }`
+      let string = 'Result{\n'
+      string += '  Failure{\n'
+      const errorString = `${this.unwrapFailure()}`
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n')
+        .trimStart()
+      string += `    error: ${errorString},\n`
+      string += '  }\n'
+      string += '}'
+      return string
     } else {
       throw new UnreachableCodeError('Reached an unreachable code path')
     }
