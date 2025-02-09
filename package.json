@@ -55,9 +55,9 @@
   "packageManager": "pnpm@8.15.9",
   "repository": "jonathanmarvens/eaux",
   "scripts": {
-    "build": "pkgroll --clean-dist --dist=./dist --minify --src=./src --target=node20",
+    "build": "pkgroll --clean-dist --dist=./dist --minify --src=./src --target=es2023 --target=node20",
     "build:dev": "run-s build:watch",
-    "build:watch": "pkgroll --clean-dist --dist=./dist --sourcemap=inline --src=./src --target=node20 --watch",
+    "build:watch": "pkgroll --clean-dist --dist=./dist --sourcemap=inline --src=./src --target=es2023 --target=node20 --watch",
     "clean-pkg-json": "clean-pkg-json",
     "dev": "run-p build:dev test:dev",
     "prepack": "run-s build clean-pkg-json",
