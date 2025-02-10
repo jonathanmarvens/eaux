@@ -31,6 +31,31 @@ import util from 'node:util'
 abstract class Maybe<TValue> {
   protected constructor() { }
 
+  #convertToString(toStringFunction: (value: unknown) => string) {
+    if (this.isSomething()) {
+      let string = 'Maybe{\n'
+      string += '  Something{\n'
+      const value = this.unwrap()
+      const valueString = toStringFunction(value)
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n')
+        .trimStart()
+      string += `    value: ${valueString},\n`
+      string += '  }\n'
+      string += '}'
+      return string
+    } else if (this.isNothing()) {
+      return `
+Maybe{
+  Nothing{}
+}
+`.trim()
+    } else {
+      throw new UnreachableCodeError('Reached an unreachable code path')
+    }
+  }
+
   protected abstract _and<TOtherValue>(other: Maybe<TOtherValue>): Maybe<TOtherValue>
 
   protected abstract _andThen<TOtherValue>(f: (value: TValue) => Maybe<TOtherValue>): Maybe<TOtherValue>
@@ -183,27 +208,7 @@ abstract class Maybe<TValue> {
   }
 
   public toString() {
-    if (this.isSomething()) {
-      let string = 'Maybe{\n'
-      string += '  Something{\n'
-      const valueString = `${this.unwrap()}`
-        .split('\n')
-        .map((line) => `    ${line}`)
-        .join('\n')
-        .trimStart()
-      string += `    value: ${valueString},\n`
-      string += '  }\n'
-      string += '}'
-      return string
-    } else if (this.isNothing()) {
-      return `
-Maybe{
-  Nothing{}
-}
-`.trim()
-    } else {
-      throw new UnreachableCodeError('Reached an unreachable code path')
-    }
+    return this.#convertToString((value) => `${value}`)
   }
 
   /**
@@ -215,7 +220,9 @@ Maybe{
   }
 
   public [util.inspect.custom]() {
-    return `${this}`
+    return this.#convertToString((value) => {
+      return util.inspect(value)
+    })
   }
 }
 
