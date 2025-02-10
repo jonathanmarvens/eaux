@@ -31,6 +31,38 @@ import util from 'node:util'
 abstract class Result<TValue, TError extends NonNullable<unknown>> {
   protected constructor() { }
 
+  #convertToString(toStringFunction: (value: unknown) => string) {
+    if (this.isSuccess()) {
+      let string = 'Result{\n'
+      string += '  Success{\n'
+      const value = this.unwrap()
+      const valueString = toStringFunction(value)
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n')
+        .trimStart()
+      string += `    value: ${valueString},\n`
+      string += '  }\n'
+      string += '}'
+      return string
+    } else if (this.isFailure()) {
+      let string = 'Result{\n'
+      string += '  Failure{\n'
+      const error = this.unwrapFailure()
+      const errorString = toStringFunction(error)
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n')
+        .trimStart()
+      string += `    error: ${errorString},\n`
+      string += '  }\n'
+      string += '}'
+      return string
+    } else {
+      throw new UnreachableCodeError('Reached an unreachable code path')
+    }
+  }
+
   protected abstract _and<TOtherValue>(other: Result<TOtherValue, TError>): Result<TOtherValue, TError>
 
   protected abstract _andThen<TOtherValue>(f: (value: TValue) => Result<TOtherValue, TError>): Result<TOtherValue, TError>
@@ -219,33 +251,7 @@ abstract class Result<TValue, TError extends NonNullable<unknown>> {
   }
 
   public toString() {
-    if (this.isSuccess()) {
-      let string = 'Result{\n'
-      string += '  Success{\n'
-      const valueString = `${this.unwrap()}`
-        .split('\n')
-        .map((line) => `    ${line}`)
-        .join('\n')
-        .trimStart()
-      string += `    value: ${valueString},\n`
-      string += '  }\n'
-      string += '}'
-      return string
-    } else if (this.isFailure()) {
-      let string = 'Result{\n'
-      string += '  Failure{\n'
-      const errorString = `${this.unwrapFailure()}`
-        .split('\n')
-        .map((line) => `    ${line}`)
-        .join('\n')
-        .trimStart()
-      string += `    error: ${errorString},\n`
-      string += '  }\n'
-      string += '}'
-      return string
-    } else {
-      throw new UnreachableCodeError('Reached an unreachable code path')
-    }
+    return this.#convertToString((value) => `${value}`)
   }
 
   /**
@@ -265,7 +271,9 @@ abstract class Result<TValue, TError extends NonNullable<unknown>> {
   }
 
   public [util.inspect.custom]() {
-    return `${this}`
+    return this.#convertToString((value) => {
+      return util.inspect(value)
+    })
   }
 }
 
