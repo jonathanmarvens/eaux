@@ -16,14 +16,15 @@
  *******************************************************************************
  */
 
-import assert from 'node:assert/strict'
+import assert from './utilities/assert'
+import { customSymbol as customNodeJsUtilInspectSymbol } from './utilities/node-js-util-inspect'
 import ExpectationError from './error/expectation'
 import ImproperUnwrapError from './error/improper-unwrap'
 import type Maybe from './maybe'
+import nodeJsUtilInspect from './utilities/node-js-util-inspect'
 import { nothing } from './maybe'
 import { something } from './maybe'
 import UnreachableCodeError from './error/unreachable-code'
-import util from 'node:util'
 
 /**
  * A robust abstraction for handling operations that can either succeed or fail.
@@ -33,31 +34,33 @@ abstract class Result<TValue, TError extends NonNullable<unknown>> {
 
   #convertToString(toStringFunction: (value: unknown) => string) {
     if (this.isSuccess()) {
-      let string = 'Result{\n'
-      string += '  Success{\n'
       const value = this.unwrap()
       const valueString = toStringFunction(value)
         .split('\n')
         .map((line) => `    ${line}`)
         .join('\n')
         .trimStart()
-      string += `    value: ${valueString},\n`
-      string += '  }\n'
-      string += '}'
-      return string
+      return `
+Result{
+  Success{
+    value: ${valueString},
+  }
+}
+        `.trim()
     } else if (this.isFailure()) {
-      let string = 'Result{\n'
-      string += '  Failure{\n'
       const error = this.unwrapFailure()
       const errorString = toStringFunction(error)
         .split('\n')
         .map((line) => `    ${line}`)
         .join('\n')
         .trimStart()
-      string += `    error: ${errorString},\n`
-      string += '  }\n'
-      string += '}'
-      return string
+      return `
+Result{
+  Failure{
+    error: ${errorString},
+  }
+}
+        `.trim()
     } else {
       throw new UnreachableCodeError('Reached an unreachable code path')
     }
@@ -270,9 +273,9 @@ abstract class Result<TValue, TError extends NonNullable<unknown>> {
     return this._unwrapFailure()
   }
 
-  public [util.inspect.custom]() {
+  public [customNodeJsUtilInspectSymbol]() {
     return this.#convertToString((value) => {
-      return util.inspect(value)
+      return nodeJsUtilInspect(value)
     })
   }
 }

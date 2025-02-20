@@ -16,14 +16,15 @@
  *******************************************************************************
  */
 
-import assert from 'node:assert/strict'
+import assert from './utilities/assert'
+import { customSymbol as customNodeJsUtilInspectSymbol } from './utilities/node-js-util-inspect'
 import ExpectationError from './error/expectation'
 import { failure } from './result'
 import ImproperUnwrapError from './error/improper-unwrap'
+import nodeJsUtilInspect from './utilities/node-js-util-inspect'
 import type Result from './result'
 import { success } from './result'
 import UnreachableCodeError from './error/unreachable-code'
-import util from 'node:util'
 
 /**
  * A robust abstraction for handling optional values.
@@ -33,24 +34,25 @@ abstract class Maybe<TValue> {
 
   #convertToString(toStringFunction: (value: unknown) => string) {
     if (this.isSomething()) {
-      let string = 'Maybe{\n'
-      string += '  Something{\n'
       const value = this.unwrap()
       const valueString = toStringFunction(value)
         .split('\n')
         .map((line) => `    ${line}`)
         .join('\n')
         .trimStart()
-      string += `    value: ${valueString},\n`
-      string += '  }\n'
-      string += '}'
-      return string
+      return `
+Maybe{
+  Something{
+    value: ${valueString},
+  }
+}
+        `.trim()
     } else if (this.isNothing()) {
       return `
 Maybe{
   Nothing{}
 }
-`.trim()
+        `.trim()
     } else {
       throw new UnreachableCodeError('Reached an unreachable code path')
     }
@@ -219,9 +221,9 @@ Maybe{
     return this._unwrap()
   }
 
-  public [util.inspect.custom]() {
+  public [customNodeJsUtilInspectSymbol]() {
     return this.#convertToString((value) => {
-      return util.inspect(value)
+      return nodeJsUtilInspect(value)
     })
   }
 }
